@@ -6,11 +6,6 @@ class APIManager {
         this.apiKey = key;
         localStorage.setItem('gemini_api_key', key);
     }
-
-    static getApiKey() {
-        if (!this.apiKey) {
-            this.apiKey = localStorage.getItem('AIzaSyDyREJYm8yNbodJwHIkvDbbIq4R5ms2gKo');
-        }
         return this.apiKey;
     }
 
