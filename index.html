@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Art Critique Tool - Professional Art Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* CSS Custom Properties (Variables) */
+        :root {
+            /* Colors - Dark Theme */
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --bg-glass-hover: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c4;
+            --text-muted: #7d7d9a;
+            
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --border-hover: rgba(255, 255, 255, 0.2);
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.25);
+            
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --info-color: #3b82f6;
+            
+            /* Typography */
+            --font-primary: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-weight-light: 300;
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            --spacing-3xl: 4rem;
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+            --radius-2xl: 1.5rem;
+            
+            /* Transitions */
+            --transition-fast: 0.15s ease-out;
+            --transition-normal: 0.3s ease-out;
+            --transition-slow: 0.5s ease-out;
+            
+            /* Layout */
+            --container-max-width: 1200px;
+            --header-height: 70px;
+            --sidebar-width: 280px;
+        }
+
+        /* Light Theme Variables */
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-glass: rgba(255, 255, 255, 0.8);
+            --bg-glass-hover: rgba(255, 255, 255, 0.9);
+            
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            --border-glass: rgba(0, 0, 0, 0.1);
+            --border-hover: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Reset and Base Styles */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            font-weight: var(--font-weight-normal);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-glass);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bg-glass-hover);
+        }
+
+        /* Navigation Header */
+        .nav-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-glass);
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: var(--container-max-width);
+            margin: 0 auto;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-lg);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: var(--font-weight-bold);
+            font-size: 1.25rem;
+        }
+
+        .nav-brand i {
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .theme-btn {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .theme-btn:hover {
+            background: var(--bg-glass-hover);
+            color: var(--text-primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: var(--header-height);
+            padding: var(--spacing-2xl) var(--spacing-lg);
+            max-width: var(--container-max-width);
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            margin-bottom: var(--spacing-3xl);
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacing-md);
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-2xl);
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Upload Section */
+        .upload-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-2xl);
+            align-items: start;
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        .upload-area {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 2px dashed var(--border-glass);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-3xl);
+            text-align: center;
+            transition: all var(--transition-normal);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: var(--info-color);
+            background: var(--bg-glass-hover);
+            transform: translateY(-5px);
+        }
+
+        .upload-area.drag-over {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+            transition: all var(--transition-normal);
+        }
+
+        .upload-area:hover .upload-icon {
+            color: var(--info-color);
+            transform: scale(1.1);
+        }
+
+        .upload-content h3 {
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .upload-content p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .upload-btn {
+            background: var(--secondary-gradient);
+            color: white;
+            border: none;
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Image Preview */
+        .image-preview {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
+            display: none;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .preview-header h4 {
+            margin: 0;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .btn-close:hover {
+            color: var(--error-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        #preview-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .image-info {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: var(--spacing-md);
+            border-radius: var(--radius-lg);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            font-size: 1rem;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: var(--spacing-3xl);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--bg-glass);
+            border-top: 4px solid var(--info-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--spacing-lg);
+        }
+
+        .loading-content h3 {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .loading-content p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .loading-progress {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-glass);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-lg);
+            width: 0%;
+            transition: width var(--transition-slow);
+        }
+
+        #progress-text {
+            font-weight: var(--font-weight-medium);
+            color: var(--info-color);
+            min-width: 40px;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .results-header h2 {
+            margin: 0;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            font-size: 0.875rem;
+            font-weight: var(--font-weight-medium);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-decoration: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            border: 1px solid var(--border-glass);
+            backdrop-filter: blur(20px);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-glass-hover);
+            border-color: var(--border-hover);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: var(--spacing-2xl);
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        /* Result Cards */
+        .result-card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: var(--spacing-2xl);
+            transition: all var(--transition-normal);
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .result-card h3 {
+            margin-bottom: var(--spacing-lg);
+            text-align: center;
+        }
+
+        /* Overall Score Card */
+        .overall-score {
+            text-align: center;
+        }
+
+        .score-circle {
+            position: relative;
+            display: inline-block;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        #overall-chart {
+            max-width: 120px;
+            height: 120px;
+        }
+
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        #overall-score {
+            font-size: 1.75rem;
+            font-weight: var(--font-weight-bold);
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-text small {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .score-label {
+            color: var(--text-secondary);
+            font-weight: var(--font-weight-medium);
+        }
+
+        /* Categories Card */
+        .category-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .category-item {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all var(--transition-slow);
+        }
+
+        .category-item.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .category-name {
+            font-weight: var(--font-weight-medium);
+            color: var(--text-primary);
+        }
+
+        .category-score {
+            font-weight: var(--font-weight-bold);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .category-progress {
+            background: var(--bg-glass);
+            height: 8px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .category-progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-lg);
+            width: 0%;
+            transition: width 0.8s ease-out;
+        }
+
+        /* Art Info Card */
+        .art-details {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--bg-glass);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-fast);
+        }
+
+        .detail-item:hover {
+            background: var(--bg-glass-hover);
+        }
+
+        .detail-item i {
+            width: 24px;
+            text-align: center;
+            color: var(--info-color);
+        }
+
+        .detail-item div {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-value {
+            font-weight: var(--font-weight-medium);
+            color: var(--text-primary);
+        }
+
+        /* Feedback Section */
+        .feedback-section {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-2xl);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .feedback-tabs {
+            display: flex;
+            background: var(--bg-glass-hover);
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: var(--spacing-lg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            font-weight: var(--font-weight-medium);
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-glass);
+        }
+
+        .tab-btn.active {
+            color: var(--info-color);
+            background: var(--bg-glass);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--info-color);
+        }
+
+        .tab-content {
+            padding: var(--spacing-2xl);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .feedback-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .feedback-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+            background: var(--bg-glass);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--success-color);
+        }
+
+        .feedback-item.improvement {
+            border-left-color: var(--warning-color);
+        }
+
+        .feedback-item.technical {
+            border-left-color: var(--info-color);
+        }
+
+        .feedback-item i {
+            color: var(--warning-color);
+            margin-top: 2px;
+            width: 16px;
+        }
+
+        .feedback-item h5 {
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+        }
+
+        .feedback-item p {
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .modal-header h3 {
+            flex: 1;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: var(--spacing-xs);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: var(--spacing-lg);
+        }
+
+        .modal-footer {
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--border-glass);
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+        }
+
+        .error-modal .modal-header {
+            color: var(--error-color);
+        }
+
+        .success-modal .modal-header {
+            color: var(--success-color);
+        }
+
+        /* Animations */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-xl);
+            }
+            
+            .upload-container {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-xl);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 var(--spacing-md);
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .main-content {
+                padding: var(--spacing-xl) var(--spacing-md);
+            }
+            
+            .upload-area {
+                padding: var(--spacing-2xl) var(--spacing-lg);
+            }
+            
+            .results-actions {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+            
+            .tab-btn {
+                flex: 1 1 100%;
+                font-size: 0.875rem;
+                padding: var(--spacing-md);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .upload-icon {
+                font-size: 2rem;
+            }
+            
+            .upload-content h3 {
+                font-size: 1rem;
+            }
+            
+            .upload-content p {
+                font-size: 0.875rem;
+            }
+            
+            .result-card {
+                padding: var(--spacing-lg);
+            }
+            
+            .tab-content {
+                padding: var(--spacing-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="nav-header">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-palette"></i>
+                AI Art Critique
+            </div>
+            <button class="theme-btn" id="theme-btn">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Professional AI Art Analysis</h1>
+                <p class="hero-subtitle">
+                    Upload your artwork and receive detailed professional critique powered by advanced AI. 
+                    Get insights on composition, color harmony, technical execution, and emotional impact.
+                </p>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="upload-section">
+            <div class="upload-container">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h3>Upload Your Artwork</h3>
+                        <p>Drag and drop your image here, or click to browse</p>
+                        <button class="upload-btn" id="upload-btn">
+                            <i class="fas fa-upload"></i>
+                            Choose File
+                        </button>
+                        <p style="font-size: 0.75rem; margin-top: var(--spacing-md); margin-bottom: 0;">
+                            Supports JPG, PNG, WebP up to 10MB
+                        </p>
+                    </div>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                </div>
+
+                <!-- Image Preview -->
+                <div class="image-preview" id="image-preview">
+                    <div class="preview-header">
+                        <h4>Image Preview</h4>
+                        <button class="btn-close" id="remove-image">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <img id="preview-img" alt="Preview">
+                    <div class="image-info">
+                        <span id="image-name">image.jpg</span>
+                        <span id="image-size">2.5 MB</span>
+                    </div>
+                    <button class="analyze-btn" id="analyze-btn">
+                        <i class="fas fa-magic"></i>
+                        Analyze Artwork
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section" id="results-section">
+            <div class="results-header">
+                <h2>Analysis Results</h2>
+                <div class="results-actions">
+                    <button class="btn btn-secondary" id="export-pdf">
+                        <i class="fas fa-file-pdf"></i>
+                        Export PDF
+                    </button>
+                    <button class="btn btn-success" id="save-result">
+                        <i class="fas fa-save"></i>
+                        Save Result
+                    </button>
+                </div>
+            </div>
+
+            <div class="results-grid">
+                <!-- Overall Score Card -->
+                <div class="result-card overall-score">
+                    <h3>Overall Score</h3>
+                    <div class="score-circle">
+                        <canvas id="overall-chart" width="120" height="120"></canvas>
+                        <div class="score-text">
+                            <div id="overall-score">85</div>
+                            <small>out of 100</small>
+                        </div>
+                    </div>
+                    <div class="score-label" id="score-label">Excellent</div>
+                </div>
+
+                <!-- Categories Card -->
+                <div class="result-card">
+                    <h3>Category Analysis</h3>
+                    <div class="category-list">
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Color Harmony</span>
+                                <span class="category-score" id="color-score">88</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="category-progress-fill" id="color-progress"></div>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Composition</span>
+                                <span class="category-score" id="composition-score">92</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="category-progress-fill" id="composition-progress"></div>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Technical Execution</span>
+                                <span class="category-score" id="technical-score">79</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="category-progress-fill" id="technical-progress"></div>
+                            </div>
+                        </div>
+                        <div class="category-item">
+                            <div class="category-header">
+                                <span class="category-name">Emotional Impact</span>
+                                <span class="category-score" id="emotional-score">86</span>
+                            </div>
+                            <div class="category-progress">
+                                <div class="category-progress-fill" id="emotional-progress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Art Info Card -->
+                <div class="result-card">
+                    <h3>Art Information</h3>
+                    <div class="art-details">
+                        <div class="detail-item">
+                            <i class="fas fa-brush"></i>
+                            <div>
+                                <div class="detail-label">Art Style</div>
+                                <div class="detail-value" id="art-style">Contemporary</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-star"></i>
+                            <div>
+                                <div class="detail-label">Skill Level</div>
+                                <div class="detail-value" id="skill-level">Advanced</div>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-heart"></i>
+                            <div>
+                                <div class="detail-label">Mood</div>
+                                <div class="detail-value" id="artwork-mood">Expressive</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Section -->
+            <div class="feedback-section">
+                <div class="feedback-tabs">
+                    <button class="tab-btn active" data-tab="strengths">
+                        <i class="fas fa-thumbs-up"></i>
+                        Strengths
+                    </button>
+                    <button class="tab-btn" data-tab="improvements">
+                        <i class="fas fa-lightbulb"></i>
+                        Improvements
+                    </button>
+                    <button class="tab-btn" data-tab="technical">
+                        <i class="fas fa-cogs"></i>
+                        Technical Notes
+                    </button>
+                    <button class="tab-btn" data-tab="overall">
+                        <i class="fas fa-comment"></i>
+                        Overall Feedback
+                    </button>
+                </div>
+                <div class="tab-content">
+                    <div class="tab-panel active" id="strengths-panel">
+                        <div class="feedback-list">
+                            <div class="feedback-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <h5>Excellent Color Balance</h5>
+                                    <p>The color palette shows sophisticated understanding of harmony with complementary blues and oranges creating visual interest.</p>
+                                </div>
+                            </div>
+                            <div class="feedback-item">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <h5>Strong Compositional Flow</h5>
+                                    <p>The arrangement guides the viewer's eye naturally through the piece, creating a pleasing visual journey.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="improvements-panel">
+                        <div class="feedback-list">
+                            <div class="feedback-item improvement">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <h5>Contrast Enhancement</h5>
+                                    <p>Consider increasing contrast in the focal areas to create stronger emphasis and visual hierarchy.</p>
+                                </div>
+                            </div>
+                            <div class="feedback-item improvement">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div>
+                                    <h5>Detail Refinement</h5>
+                                    <p>Some areas could benefit from additional detail work to enhance the overall technical execution.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="technical-panel">
+                        <div class="feedback-list">
+                            <div class="feedback-item technical">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <h5>Brush Technique</h5>
+                                    <p>Shows confident brush work with good understanding of texture and form representation.</p>
+                                </div>
+                            </div>
+                            <div class="feedback-item technical">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <h5>Light and Shadow</h5>
+                                    <p>Good grasp of light direction and shadow placement, though some areas could use more dramatic lighting.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel" id="overall-panel">
+                        <div class="feedback-list">
+                            <div class="feedback-item">
+                                <div>
+                                    <h5>Overall Assessment</h5>
+                                    <p>This artwork demonstrates strong artistic fundamentals with particularly impressive compositional skills and color sense. The technical execution is solid, and the emotional expression comes through effectively. With some refinement in contrast and detail work, this piece could reach even greater impact. The artist shows clear understanding of visual principles and personal artistic voice.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Analyzing Your Artwork</h3>
+            <p id="loading-text">Initializing AI analysis...</p>
+            <div class="loading-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span id="progress-text">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal-overlay error-modal" id="error-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error</h3>
+                <button class="modal-close" id="close-error">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="error-message">An error occurred while processing your request.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="error-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay success-modal" id="success-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-check-circle"></i>
+                <h3>Success</h3>
+                <button class="modal-close" id="close-success">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="success-message">Operation completed successfully!</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" id="success-ok">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * AI Art Critique Tool - Complete Application
+         * Professional art analysis with simulated AI integration
+         */
+
+        class ArtCritiqueApp {
+            constructor() {
+                this.currentImage = null;
+                this.currentAnalysis = null;
+                this.isAnalyzing = false;
+                this.progressInterval = null;
+                
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.setupTheme();
+                console.log('🎨 Art Critique AI initialized successfully');
+            }
+
+            setupEventListeners() {
+                // File upload events
+                const fileInput = document.getElementById('file-input');
+                const uploadArea = document.getElementById('upload-area');
+                const uploadBtn = document.getElementById('upload-btn');
+                const removeBtn = document.getElementById('remove-image');
+                const analyzeBtn = document.getElementById('analyze-btn');
+
+                uploadArea.addEventListener('click', () => fileInput.click());
+                uploadBtn.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+
+                // Drag and drop events
+                uploadArea.addEventListener('dragover', (e) => this.handleDragOver(e));
+                uploadArea.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+                uploadArea.addEventListener('drop', (e) => this.handleDrop(e));
+
+                // Image preview events
+                removeBtn?.addEventListener('click', () => this.removeImage());
+                analyzeBtn?.addEventListener('click', () => this.analyzeImage());
+
+                // Theme toggle
+                const themeBtn = document.getElementById('theme-btn');
+                themeBtn?.addEventListener('click', () => this.toggleTheme());
+
+                // Tab navigation
+                this.setupTabNavigation();
+
+                // Modal events
+                this.setupModalEvents();
+
+                // Export events
+                const exportBtn = document.getElementById('export-pdf');
+                exportBtn?.addEventListener('click', () => this.exportToPDF());
+
+                // Save result
+                const saveBtn = document.getElementById('save-result');
+                saveBtn?.addEventListener('click', () => this.saveResult());
+            }
+
+            setupTabNavigation() {
+                const tabBtns = document.querySelectorAll('.tab-btn');
+                const tabPanels = document.querySelectorAll('.tab-panel');
+
+                tabBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const tabId = btn.getAttribute('data-tab');
+                        
+                        // Remove active classes
+                        tabBtns.forEach(b => b.classList.remove('active'));
+                        tabPanels.forEach(p => p.classList.remove('active'));
+                        
+                        // Add active classes
+                        btn.classList.add('active');
+                        const targetPanel = document.getElementById(`${tabId}-panel`);
+                        if (targetPanel) {
+                            targetPanel.classList.add('active');
+                        }
+                    });
+                });
+            }
+
+            setupModalEvents() {
+                // Error modal
+                const errorModal = document.getElementById('error-modal');
+                const closeErrorBtn = document.getElementById('close-error');
+                const errorOkBtn = document.getElementById('error-ok');
+
+                [closeErrorBtn, errorOkBtn].forEach(btn => {
+                    btn?.addEventListener('click', () => {
+                        errorModal.style.display = 'none';
+                    });
+                });
+
+                // Success modal
+                const successModal = document.getElementById('success-modal');
+                const closeSuccessBtn = document.getElementById('close-success');
+                const successOkBtn = document.getElementById('success-ok');
+
+                [closeSuccessBtn, successOkBtn].forEach(btn => {
+                    btn?.addEventListener('click', () => {
+                        successModal.style.display = 'none';
+                    });
+                });
+
+                // Close modals on overlay click
+                [errorModal, successModal].forEach(modal => {
+                    modal?.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            setupTheme() {
+                const themeBtn = document.getElementById('theme-btn');
+                const currentTheme = window.localStorage?.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', currentTheme);
+                
+                if (currentTheme === 'light') {
+                    themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+            }
+
+            toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                const themeBtn = document.getElementById('theme-btn');
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                if (window.localStorage) {
+                    window.localStorage.setItem('theme', newTheme);
+                }
+                
+                themeBtn.innerHTML = newTheme === 'light' ? 
+                    '<i class="fas fa-sun"></i>' : 
+                    '<i class="fas fa-moon"></i>';
+            }
+
+            handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.processFile(file);
+                }
+            }
+
+            handleDragOver(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const uploadArea = document.getElementById('upload-area');
+                uploadArea.classList.add('drag-over');
+            }
+
+            handleDragLeave(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const uploadArea = document.getElementById('upload-area');
+                uploadArea.classList.remove('drag-over');
+            }
+
+            handleDrop(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const uploadArea = document.getElementById('upload-area');
+                uploadArea.classList.remove('drag-over');
+                
+                const files = event.dataTransfer.files;
+                if (files.length > 0) {
+                    this.processFile(files[0]);
+                }
+            }
+
+            async processFile(file) {
+                try {
+                    if (!this.validateFile(file)) {
+                        return;
+                    }
+
+                    const processedFile = await this.compressImage(file);
+                    const imageUrl = URL.createObjectURL(processedFile);
+                    this.showImagePreview(imageUrl, processedFile);
+                    
+                    this.currentImage = {
+                        file: processedFile,
+                        url: imageUrl,
+                        name: file.name,
+                        size: file.size
+                    };
+
+                } catch (error) {
+                    console.error('Error processing file:', error);
+                    this.showError('Failed to process the image. Please try again.');
+                }
+            }
+
+            validateFile(file) {
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+                if (!allowedTypes.includes(file.type)) {
+                    this.showError('Please upload a valid image file (JPG, PNG, or WebP).');
+                    return false;
+                }
+
+                if (file.size > maxSize) {
+                    this.showError('Image size should be less than 10MB.');
+                    return false;
+                }
+
+                return true;
+            }
+
+            async compressImage(file) {
+                return new Promise((resolve) => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+
+                    img.onload = () => {
+                        const maxWidth = 1920;
+                        const maxHeight = 1080;
+                        let { width, height } = img;
+
+                        if (width > maxWidth || height > maxHeight) {
+                            const ratio = Math.min(maxWidth / width, maxHeight / height);
+                            width *= ratio;
+                            height *= ratio;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        canvas.toBlob(resolve, 'image/jpeg', 0.85);
+                        URL.revokeObjectURL(img.src);
+                    };
+
+                    img.src = URL.createObjectURL(file);
+                });
+            }
+
+            showImagePreview(imageUrl, file) {
+                const previewSection = document.getElementById('image-preview');
+                const previewImg = document.getElementById('preview-img');
+                const imageName = document.getElementById('image-name');
+                const imageSize = document.getElementById('image-size');
+
+                previewImg.src = imageUrl;
+                imageName.textContent = file.name;
+                imageSize.textContent = this.formatFileSize(file.size);
+
+                previewSection.style.display = 'block';
+            }
+
+            removeImage() {
+                const previewSection = document.getElementById('image-preview');
+                previewSection.style.display = 'none';
+
+                if (this.currentImage) {
+                    URL.revokeObjectURL(this.currentImage.url);
+                    this.currentImage = null;
+                }
+
+                const fileInput = document.getElementById('file-input');
+                fileInput.value = '';
+
+                // Hide results if shown
+                const resultsSection = document.getElementById('results-section');
+                resultsSection.style.display = 'none';
+            }
+
+            async analyzeImage() {
+                if (!this.currentImage || this.isAnalyzing) {
+                    return;
+                }
+
+                try {
+                    this.isAnalyzing = true;
+                    this.showLoadingOverlay();
+
+                    // Simulate AI analysis with realistic timing
+                    await this.simulateAnalysis();
+                    
+                    // Generate mock analysis results
+                    const analysis = this.generateMockAnalysis();
+                    
+                    this.currentAnalysis = analysis;
+                    this.displayResults(analysis);
+                    this.hideLoadingOverlay();
+                    this.scrollToResults();
+
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    this.hideLoadingOverlay();
+                    this.showError('Failed to analyze the image. Please try again.');
+                } finally {
+                    this.isAnalyzing = false;
+                }
+            }
+
+            async simulateAnalysis() {
+                return new Promise((resolve) => {
+                    setTimeout(resolve, 4000); // 4 second analysis time
+                });
+            }
+
+            generateMockAnalysis() {
+                const scores = {
+                    color: 75 + Math.random() * 20,
+                    composition: 70 + Math.random() * 25,
+                    technical: 65 + Math.random() * 30,
+                    emotional: 70 + Math.random() * 25
+                };
+
+                const overallScore = Math.round((scores.color + scores.composition + scores.technical + scores.emotional) / 4);
+
+                return {
+                    overallScore,
+                    analysis: {
+                        colorHarmony: { score: Math.round(scores.color) },
+                        composition: { score: Math.round(scores.composition) },
+                        technicalExecution: { score: Math.round(scores.technical) },
+                        emotionalImpact: { score: Math.round(scores.emotional) }
+                    },
+                    artStyle: this.getRandomArtStyle(),
+                    skillLevel: this.getSkillLevel(overallScore),
+                    mood: this.getRandomMood()
+                };
+            }
+
+            getRandomArtStyle() {
+                const styles = ['Contemporary', 'Impressionist', 'Abstract', 'Realist', 'Expressionist', 'Minimalist'];
+                return styles[Math.floor(Math.random() * styles.length)];
+            }
+
+            getSkillLevel(score) {
+                if (score >= 85) return 'Expert';
+                if (score >= 75) return 'Advanced';
+                if (score >= 65) return 'Intermediate';
+                return 'Beginner';
+            }
+
+            getRandomMood() {
+                const moods = ['Expressive', 'Peaceful', 'Dynamic', 'Contemplative', 'Vibrant', 'Melancholic'];
+                return moods[Math.floor(Math.random() * moods.length)];
+            }
+
+            showLoadingOverlay() {
+                const overlay = document.getElementById('loading-overlay');
+                const progressFill = document.getElementById('progress-fill');
+                const progressText = document.getElementById('progress-text');
+                const loadingText = document.getElementById('loading-text');
+
+                overlay.style.display = 'flex';
+                
+                let progress = 0;
+                const messages = [
+                    'Initializing AI analysis...',
+                    'Processing image data...',
+                    'Analyzing composition...',
+                    'Evaluating color harmony...',
+                    'Assessing technical execution...',
+                    'Measuring emotional impact...',
+                    'Generating feedback...',
+                    'Finalizing results...'
+                ];
+
+                this.progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 95) progress = 95;
+
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `${Math.round(progress)}%`;
+                    
+                    const messageIndex = Math.floor(progress / 12.5);
+                    if (messages[messageIndex]) {
+                        loadingText.textContent = messages[messageIndex];
+                    }
+                }, 300);
+            }
+
+            hideLoadingOverlay() {
+                const overlay = document.getElementById('loading-overlay');
+                const progressFill = document.getElementById('progress-fill');
+                const progressText = document.getElementById('progress-text');
+
+                progressFill.style.width = '100%';
+                progressText.textContent = '100%';
+
+                if (this.progressInterval) {
+                    clearInterval(this.progressInterval);
+                }
+
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    progressFill.style.width = '0%';
+                    progressText.textContent = '0%';
+                }, 500);
+            }
+
+            displayResults(analysis) {
+                const resultsSection = document.getElementById('results-section');
+                resultsSection.style.display = 'block';
+
+                this.animateOverallScore(analysis.overallScore);
+                this.animateCategoryScores(analysis.analysis);
+                this.updateArtInfo(analysis);
+
+                resultsSection.classList.add('fade-in-up');
+            }
+
+            animateOverallScore(score) {
+                const scoreElement = document.getElementById('overall-score');
+                const labelElement = document.getElementById('score-label');
+                const chart = document.getElementById('overall-chart');
+
+                this.animateCounter(scoreElement, 0, score, 1000);
+
+                const getScoreLabel = (score) => {
+                    if (score >= 90) return 'Exceptional';
+                    if (score >= 80) return 'Excellent';
+                    if (score >= 70) return 'Good';
+                    if (score >= 60) return 'Fair';
+                    return 'Needs Improvement';
+                };
+
+                labelElement.textContent = getScoreLabel(score);
+                this.drawCircularProgress(chart, score);
+            }
+
+            drawCircularProgress(canvas, percentage) {
+                const ctx = canvas.getContext('2d');
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = 50;
+                const startAngle = -Math.PI / 2;
+                const endAngle = startAngle + (percentage / 100) * 2 * Math.PI;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Background circle
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 8;
+                ctx.stroke();
+
+                // Progress arc
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                gradient.addColorStop(0, '#4facfe');
+                gradient.addColorStop(1, '#00f2fe');
+
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 8;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            animateCategoryScores(analysis) {
+                const categories = [
+                    { id: 'color', data: analysis.colorHarmony },
+                    { id: 'composition', data: analysis.composition },
+                    { id: 'technical', data: analysis.technicalExecution },
+                    { id: 'emotional', data: analysis.emotionalImpact }
+                ];
+
+                categories.forEach((category, index) => {
+                    setTimeout(() => {
+                        const scoreElement = document.getElementById(`${category.id}-score`);
+                        const progressElement = document.getElementById(`${category.id}-progress`);
+                        const categoryElement = document.querySelector(`.category-item:nth-child(${index + 1})`);
+
+                        this.animateCounter(scoreElement, 0, category.data.score, 800);
+                        categoryElement.classList.add('animate');
+
+                        setTimeout(() => {
+                            progressElement.style.width = `${category.data.score}%`;
+                        }, 200);
+
+                    }, index * 200);
+                });
+            }
+
+            updateArtInfo(analysis) {
+                document.getElementById('art-style').textContent = analysis.artStyle;
+                document.getElementById('skill-level').textContent = analysis.skillLevel;
+                document.getElementById('artwork-mood').textContent = analysis.mood;
+            }
+
+            animateCounter(element, start, end, duration) {
+                const startTime = performance.now();
+                const animate = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const current = Math.round(start + (end - start) * progress);
+                    element.textContent = current;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+
+            scrollToResults() {
+                const resultsSection = document.getElementById('results-section');
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            showError(message) {
+                const modal = document.getElementById('error-modal');
+                const messageElement = document.getElementById('error-message');
+                messageElement.textContent = message;
+                modal.style.display = 'flex';
+            }
+
+            showSuccess(message) {
+                const modal = document.getElementById('success-modal');
+                const messageElement = document.getElementById('success-message');
+                messageElement.textContent = message;
+                modal.style.display = 'flex';
+            }
+
+            exportToPDF() {
+                this.showSuccess('PDF export feature will be available in a future update!');
+            }
+
+            saveResult() {
+                if (this.currentAnalysis) {
+                    this.showSuccess('Analysis results have been saved successfully!');
+                } else {
+                    this.showError('No analysis results to save. Please analyze an image first.');
+                }
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new ArtCritiqueApp();
+        });
+    </script>
+</body>
+</html>
